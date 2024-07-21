@@ -8,6 +8,7 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS 1)
 
 add_executable(cclc src/main.c)
 add_library(lex src/lex.c)
+add_library(semantic src/semantic.c)
 
 target_include_directories(
   cclc
@@ -17,9 +18,15 @@ target_include_directories(
 target_link_libraries(
   cclc
   lex
+  semantic
   )
 target_include_directories(
   lex
+  PUBLIC
+  src/include
+  )
+target_include_directories(
+  semantic
   PUBLIC
   src/include
   )

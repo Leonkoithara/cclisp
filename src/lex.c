@@ -4,7 +4,7 @@
 #include <lex.h>
 
 #include <ctype.h>
-#include <malloc.h>
+#include <stdlib.h>
 #include <stdio.h>
 
 
@@ -29,9 +29,12 @@ token *get_tokens(FILE *fp, int *out_ntokens)
     do
     {
         ch = fgetc(fp);
-        if (ch == ' ' || ch == EOF)
+        if (ch == ' ')
 		{
-            // TODO: remove all whitespaces after this
+            while (ch == ' ')
+                ch = fgetc(fp);
+            fseek(fp, -1, SEEK_CUR);
+
             toks[i].string = word;
             toks[i].string_length = j;
             word = (char*)malloc(WORD_SIZE*sizeof(char));
@@ -40,14 +43,33 @@ token *get_tokens(FILE *fp, int *out_ntokens)
         }
         else if (is_in(ch, scope_designators, 4) != 0)
 		{
+            if (j != 0)
+			{
+                toks[i].string = word;
+                toks[i].string_length = j;
+                word = (char*)malloc(WORD_SIZE*sizeof(char));
+                j=0;
+                i++;
+            }
+            char *scope_token = (char*)malloc(sizeof(char));
+            scope_token[0] = ch;
+            toks[i].string = scope_token;
+            toks[i].string_length = 1;
+            toks[i].type = 2;
+            j=0;
+            i++;
+        }
+        else if (ch == '\n' || ch == EOF)
+		{
+            continue;
         }
         else
         {
             if (j == WORD_SIZE)
                 word = (char*)realloc(word, (j/WORD_SIZE+1)*WORD_SIZE*sizeof(char));
-            if (isdigit(ch))
+            if (isdigit(ch) && j==0)
                 toks[i].type = 0;
-            if (isalpha(ch))
+            if (isalpha(ch) && j==0)
                 toks[i].type = 1;
             word[j] = ch;
             j++;
